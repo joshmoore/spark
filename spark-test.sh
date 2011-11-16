@@ -14,21 +14,21 @@ it_charts_pipe_data() {
   data="0,30,55,80,33,150"
   graph="$(echo $data | $spark)"
 
-  test $graph = '▁▂▃▅▂█'
+  test $graph = '▁▂▃▄▂█'
 }
 
 it_charts_spaced_data() {
   data="0 30 55 80 33 150"
   graph=$($spark "$data")
 
-  test $graph = '▁▂▃▅▂█'
+  test $graph = '▁▂▃▄▂█'
 }
 
 it_charts_way_spaced_data() {
   data="0 30               55 80 33     150"
   graph=$($spark "$data")
 
-  test $graph = '▁▂▃▅▂█'
+  test $graph = '▁▂▃▄▂█'
 }
 
 it_handles_decimals() {
@@ -56,14 +56,14 @@ it_charts_4_lt_8() {
   data="2,4,8"
   graph="$($spark $data)"
 
-  test $graph = '▂▄█'
+  test $graph = '▃▅█'
 }
 
 it_charts_no_tier_0() {
   data="1,2,3,4,5"
   graph="$($spark $data)"
 
-  test $graph = '▂▄▅▇█'
+  test $graph = '▂▄▆██'
 }
 
 it_charts_negatives() {
