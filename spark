@@ -26,6 +26,7 @@
 #   # => Prints the spark help text.
 
 import getopt
+import fileinput
 import os
 import re
 import sys
@@ -52,6 +53,18 @@ def help():
     sys.exit(0)
 
 
+def splitlines(lines):
+    """
+    split lines from the iterator yielding numbers
+    """
+    for line in lines:
+        source = line.strip()
+        split = re.split("[,\s]+", source)
+        numbers = [float((x.strip())) for x in split]
+        for number in numbers:
+            yield number
+
+
 class Data(object):
     """
     Container class which parses the string data from the
@@ -69,8 +82,10 @@ class Data(object):
 
     def setup(self):
         if self.max is None:
+            self.numbers = list(self.numbers) # Eagerly load.
             self.max = max(self.numbers)
         if self.min is None:
+            self.numbers = list(self.numbers) # Eagerly load.
             self.min = min(self.numbers)
         if self.min < 0:
             self.shift = -1 * self.min
@@ -96,6 +111,7 @@ class Data(object):
             sys.stdout.write(self.ticks[choice].encode("utf-8"))
         print
 
+
 def main():
 
     # The actual fun characters we are generating in the sparkline.
@@ -104,9 +120,9 @@ def main():
     args = sys.argv[1:]
 
     optlist, args = getopt.getopt(args, ':h', \
-            ["chars=", "min=", "max=", "stream"])
+            ["chars=", "min=", "max=", "file="])
 
-    stream = False
+    file = False
     user_min = None
     user_max = None
 
@@ -119,29 +135,25 @@ def main():
             elif re.match("\d+", v):
                 size = int(v)
                 ticks = ["%s " % x for x in range(1, size + 1)]
-        elif k == "--stream":
-            stream = True
+        elif k == "--file":
+            file= v
         elif k == "--min":
             user_min = int(v)
         elif k == "--max":
             user_max = int(v)
 
-        if stream and (min is None or max is None):
-            help()
+    if file and (user_min is None or user_max is None):
+        help()
 
     source = None
     if len(args) > 0:
-        source = args[0]
+        source = splitlines([args[0]])
     else:
         if sys.stdin.isatty():
             help()
-        source = sys.stdin.read()
+        source = splitlines(fileinput.input(file))
 
-    source = source.strip()
-    split = re.split("[,\s]+", source)
-    numbers = [float((x.strip())) for x in split]
-
-    data = Data(ticks, numbers, user_min=user_min, user_max=user_max)
+    data = Data(ticks, source, user_min=user_min, user_max=user_max)
     data.print_ticks()
 
 if __name__ == "__main__":
